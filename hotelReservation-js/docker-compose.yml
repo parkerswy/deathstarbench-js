@@ -1,0 +1,248 @@
+services:
+  consul:
+    image: hashicorp/consul:latest
+    ports:
+      - "8300:8300"
+      - "8400:8400"
+      - "8500:8500"
+      - "8600:53/udp"
+    restart: always
+
+  frontend:
+    build: .
+    image: deathstarbench/hotel-reservation-js:latest
+    command: ["node", "src/cmd/frontend.js"]
+    environment:
+      - TLS
+      - GC
+      - JAEGER_SAMPLE_RATIO
+      - LOG_LEVEL
+    ports:
+      - "${FRONTEND_HOST_PORT:-5000}:5000"
+    depends_on:
+      - consul
+    restart: always
+
+  profile:
+    image: deathstarbench/hotel-reservation-js:latest
+    command: ["node", "src/cmd/profile.js"]
+    environment:
+      - TLS
+      - GC
+      - JAEGER_SAMPLE_RATIO
+      - LOG_LEVEL
+      - MEMC_TIMEOUT
+    depends_on:
+      - mongodb-profile
+      - memcached-profile
+      - consul
+    restart: always
+
+  search:
+    image: deathstarbench/hotel-reservation-js:latest
+    command: ["node", "src/cmd/search.js"]
+    environment:
+      - TLS
+      - GC
+      - JAEGER_SAMPLE_RATIO
+      - LOG_LEVEL
+    depends_on:
+      - consul
+    restart: always
+
+  geo:
+    image: deathstarbench/hotel-reservation-js:latest
+    command: ["node", "src/cmd/geo.js"]
+    environment:
+      - TLS
+      - GC
+      - JAEGER_SAMPLE_RATIO
+      - LOG_LEVEL
+    depends_on:
+      - mongodb-geo
+      - consul
+    restart: always
+
+  rate:
+    image: deathstarbench/hotel-reservation-js:latest
+    command: ["node", "src/cmd/rate.js"]
+    environment:
+      - TLS
+      - GC
+      - JAEGER_SAMPLE_RATIO
+      - LOG_LEVEL
+      - MEMC_TIMEOUT
+    depends_on:
+      - mongodb-rate
+      - memcached-rate
+      - consul
+    restart: always
+
+  review:
+    image: deathstarbench/hotel-reservation-js:latest
+    command: ["node", "src/cmd/review.js"]
+    environment:
+      - TLS
+      - GC
+      - JAEGER_SAMPLE_RATIO
+      - LOG_LEVEL
+      - MEMC_TIMEOUT
+    depends_on:
+      - mongodb-review
+      - memcached-review
+      - consul
+    restart: always
+
+  attractions:
+    image: deathstarbench/hotel-reservation-js:latest
+    command: ["node", "src/cmd/attractions.js"]
+    environment:
+      - TLS
+      - GC
+      - JAEGER_SAMPLE_RATIO
+      - LOG_LEVEL
+    depends_on:
+      - mongodb-attractions
+      - consul
+    restart: always
+
+  recommendation:
+    image: deathstarbench/hotel-reservation-js:latest
+    command: ["node", "src/cmd/recommendation.js"]
+    environment:
+      - TLS
+      - GC
+      - JAEGER_SAMPLE_RATIO
+      - LOG_LEVEL
+    depends_on:
+      - mongodb-recommendation
+      - consul
+    restart: always
+
+  user:
+    image: deathstarbench/hotel-reservation-js:latest
+    command: ["node", "src/cmd/user.js"]
+    environment:
+      - TLS
+      - GC
+      - JAEGER_SAMPLE_RATIO
+      - LOG_LEVEL
+    depends_on:
+      - mongodb-user
+      - consul
+    restart: always
+
+  reservation:
+    image: deathstarbench/hotel-reservation-js:latest
+    command: ["node", "src/cmd/reservation.js"]
+    environment:
+      - TLS
+      - GC
+      - JAEGER_SAMPLE_RATIO
+      - LOG_LEVEL
+      - MEMC_TIMEOUT
+    depends_on:
+      - mongodb-reservation
+      - memcached-reserve
+      - consul
+    restart: always
+
+  jaeger:
+    image: jaegertracing/all-in-one:latest
+    ports:
+      - "16686:16686"
+      - "5778:5778"
+      - "14268:14268"
+      - "6831:6831/udp"
+      - "6832:6832/udp"
+    restart: always
+
+  memcached-rate:
+    image: memcached:1.6.41-alpine
+    platform: linux/arm64/v8
+    command: ["memcached", "-m", "128", "-t", "2"]
+    restart: always
+
+  memcached-review:
+    image: memcached:1.6.41-alpine
+    platform: linux/arm64/v8
+    command: ["memcached", "-m", "128", "-t", "2"]
+    restart: always
+
+  memcached-profile:
+    image: memcached:1.6.41-alpine
+    platform: linux/arm64/v8
+    command: ["memcached", "-m", "128", "-t", "2"]
+    restart: always
+
+  memcached-reserve:
+    image: memcached:1.6.41-alpine
+    platform: linux/arm64/v8
+    command: ["memcached", "-m", "128", "-t", "2"]
+    restart: always
+
+  mongodb-geo:
+    image: mongo:5.0
+    hostname: geo-db
+    volumes:
+      - geo:/data/db
+    restart: always
+
+  mongodb-profile:
+    image: mongo:5.0
+    hostname: profile-db
+    volumes:
+      - profile:/data/db
+    restart: always
+
+  mongodb-rate:
+    image: mongo:5.0
+    hostname: rate-db
+    volumes:
+      - rate:/data/db
+    restart: always
+
+  mongodb-review:
+    image: mongo:5.0
+    hostname: review-db
+    volumes:
+      - review:/data/db
+    restart: always
+
+  mongodb-attractions:
+    image: mongo:5.0
+    hostname: attractions-db
+    volumes:
+      - attractions:/data/db
+    restart: always
+
+  mongodb-recommendation:
+    image: mongo:5.0
+    hostname: recommendation-db
+    volumes:
+      - recommendation:/data/db
+    restart: always
+
+  mongodb-reservation:
+    image: mongo:5.0
+    hostname: reservation-db
+    volumes:
+      - reservation:/data/db
+    restart: always
+
+  mongodb-user:
+    image: mongo:5.0
+    hostname: user-db
+    volumes:
+      - user:/data/db
+    restart: always
+
+volumes:
+  geo:
+  profile:
+  rate:
+  recommendation:
+  reservation:
+  user:
+  review:
+  attractions:

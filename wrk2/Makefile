@@ -7,7 +7,15 @@ ifeq ($(TARGET), sunos)
 	CFLAGS += -D_PTHREADS -D_POSIX_C_SOURCE=200112L
 	LIBS   += -lsocket
 else ifeq ($(TARGET), darwin)
-	LDFLAGS += -pagezero_size 10000 -image_base 100000000
+	MACOSX_DEPLOYMENT_TARGET ?= $(shell sw_vers -productVersion | awk -F. '{print $$1 "." $$2}')
+	export MACOSX_DEPLOYMENT_TARGET
+	ifneq (,$(wildcard /opt/homebrew/opt/openssl@3))
+		CFLAGS += -I/opt/homebrew/opt/openssl@3/include
+		LDFLAGS += -L/opt/homebrew/opt/openssl@3/lib
+	else ifneq (,$(wildcard /usr/local/opt/openssl@3))
+		CFLAGS += -I/usr/local/opt/openssl@3/include
+		LDFLAGS += -L/usr/local/opt/openssl@3/lib
+	endif
 else ifeq ($(TARGET), linux)
         CFLAGS  += -D_POSIX_C_SOURCE=200112L -D_BSD_SOURCE
 	LIBS    += -ldl
@@ -22,7 +30,7 @@ SRC  := wrk.c net.c ssl.c aprintf.c stats.c script.c units.c \
 BIN  := wrk
 
 ODIR := obj
-OBJ  := $(patsubst %.c,$(ODIR)/%.o,$(SRC)) $(ODIR)/bytecode.o
+OBJ  := $(patsubst %.c,$(ODIR)/%.o,$(SRC))
 
 LDIR     = deps/luajit/src
 LIBS    := -lluajit $(LIBS)
@@ -43,10 +51,6 @@ $(OBJ): config.h Makefile $(LDIR)/libluajit.a | $(ODIR)
 
 $(ODIR):
 	@mkdir -p $@
-
-$(ODIR)/bytecode.o: src/wrk.lua
-	@echo LUAJIT $<
-	@$(SHELL) -c 'cd $(LDIR) && ./luajit -b $(CURDIR)/$< $(CURDIR)/$@'
 
 $(ODIR)/%.o : %.c
 	@echo CC $<

@@ -1,8 +1,7 @@
-local socket = require("socket")
-math.randomseed(socket.gettime()*1000)
+math.randomseed(os.time())
 math.random(); math.random(); math.random()
 
-local url = "http://localhost:5000"
+local base_url = url
 
 local function get_user()
   local id = math.random(0, 500)
@@ -36,7 +35,7 @@ local function search_hotel()
   local lon = -122.095 + (math.random(0, 325) - 157.0)/1000.0
 
   local method = "GET"
-  local path = url .. "/hotels?inDate=" .. in_date_str .. 
+  local path = base_url .. "/hotels?inDate=" .. in_date_str .. 
     "&outDate=" .. out_date_str .. "&lat=" .. tostring(lat) .. "&lon=" .. tostring(lon)
 
   local headers = {}
@@ -59,7 +58,7 @@ local function recommend()
   local lon = -122.095 + (math.random(0, 325) - 157.0)/1000.0
 
   local method = "GET"
-  local path = url .. "/recommendations?require=" .. req_param .. 
+  local path = base_url .. "/recommendations?require=" .. req_param .. 
     "&lat=" .. tostring(lat) .. "&lon=" .. tostring(lon)
   local headers = {}
   -- headers["Content-Type"] = "application/x-www-form-urlencoded"
@@ -91,7 +90,7 @@ local function reserve()
   local num_room = "1"
 
   local method = "POST"
-  local path = url .. "/reservation?inDate=" .. in_date_str .. 
+  local path = base_url .. "/reservation?inDate=" .. in_date_str .. 
     "&outDate=" .. out_date_str .. "&lat=" .. tostring(lat) .. "&lon=" .. tostring(lon) ..
     "&hotelId=" .. hotel_id .. "&customerName=" .. cust_name .. "&username=" .. user_id ..
     "&password=" .. password .. "&number=" .. num_room
@@ -103,14 +102,13 @@ end
 local function user_login()
   local user_name, password = get_user()
   local method = "POST"
-  local path = url .. "/user?username=" .. user_name .. "&password=" .. password
+  local path = base_url .. "/user?username=" .. user_name .. "&password=" .. password
   local headers = {}
   -- headers["Content-Type"] = "application/x-www-form-urlencoded"
   return wrk.format(method, path, headers, nil)
 end
 
 request = function()
-  cur_time = math.floor(socket.gettime())
   local search_ratio      = 0.6
   local recommend_ratio   = 0.39
   local user_ratio        = 0.005

@@ -25,6 +25,7 @@ static int script_wrk_connect(lua_State *);
 static void set_fields(lua_State *, int, const table_field *);
 static void set_field(lua_State *, int, char *, int);
 static int push_url_part(lua_State *, char *, struct http_parser_url *, enum http_parser_url_fields);
+static void script_load_wrk_module(lua_State *);
 
 static const luaL_Reg addrlib[] = {
     { "__tostring", script_addr_tostring   },
@@ -44,10 +45,47 @@ static const luaL_Reg threadlib[] = {
     { NULL,         NULL                   }
 };
 
+static void script_load_wrk_module(lua_State *L) {
+    if (luaL_dostring(L, "wrk = require \"wrk\"") == 0) {
+        return;
+    }
+
+    const char *require_error = lua_tostring(L, -1);
+    lua_pop(L, 1);
+
+    const char *env_path = getenv("WRK_LUA_PATH");
+    const char *candidates[] = {
+        env_path,
+        "wrk2/src/wrk.lua",
+        "src/wrk.lua",
+        "./src/wrk.lua",
+        NULL
+    };
+
+    for (size_t i = 0; i < sizeof(candidates) / sizeof(candidates[0]); i++) {
+        const char *candidate = candidates[i];
+        if (!candidate) {
+            continue;
+        }
+        if (!*candidate) {
+            continue;
+        }
+        if (luaL_dofile(L, candidate) == 0) {
+            lua_setglobal(L, "wrk");
+            return;
+        }
+        lua_pop(L, 1);
+    }
+
+    fprintf(stderr, "unable to load built-in wrk module: %s\n", require_error);
+    fprintf(stderr, "set WRK_LUA_PATH or run wrk from the repo root/wrk2 directory\n");
+    exit(1);
+}
+
 lua_State *script_create(char *file, char *url, char **headers) {
     lua_State *L = luaL_newstate();
     luaL_openlibs(L);
-    (void) luaL_dostring(L, "wrk = require \"wrk\"");
+    script_load_wrk_module(L);
 
     luaL_newmetatable(L, "wrk.addr");
     luaL_register(L, NULL, addrlib);

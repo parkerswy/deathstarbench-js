@@ -482,6 +482,9 @@ static int reconnect_socket(thread *thread, connection *c) {
     aeDeleteFileEvent(thread->loop, c->fd, AE_WRITABLE | AE_READABLE);
     sock.close(c);
     close(c->fd);
+    c->pending = 0;
+    c->start = 0;
+    c->written = 0;
     printf("reconnect_socket\n");
     return connect_socket(thread, c);
 }
@@ -531,7 +534,7 @@ static int check_timeouts(aeEventLoop *loop, long long id, void *data) {
     uint64_t maxAge = now - (cfg.timeout * 1000); // us
     // printf("check_timeouts maxAge %ld, c->start %ld\n", maxAge, c->start);
     for (uint64_t i = 0; i < thread->connections; i++, c++) {
-        if (maxAge > c->start) {
+        if (c->pending > 0 && c->start > 0 && maxAge > c->start) {
             thread->errors.timeout++;
         }
     }
@@ -727,7 +730,15 @@ static int response_complete(http_parser *parser) {
     }
 
     // Count all responses (including pipelined ones:)
+    if (c->pending > 0) {
+        c->pending--;
+    }
     c->complete++;
+    if (c->pending == 0) {
+        c->start = 0;
+    } else {
+        c->start = c->actual_latency_start[c->complete & MAXO];
+    }
     if (!http_should_keep_alive(parser)) {
         reconnect_socket(thread, c);
         goto done;
@@ -793,9 +804,13 @@ static void socket_writeable(aeEventLoop *loop, int fd, void *data, int mask) {
         case RETRY: return;
     }
     if (!c->written) {
-        c->start = time_us();
-        c->actual_latency_start[c->sent & MAXO] = c->start;
+        uint64_t started_at = time_us();
+        if (c->pending == 0) {
+            c->start = started_at;
+        }
+        c->actual_latency_start[c->sent & MAXO] = started_at;
         c->sent ++;
+        c->pending++;
     }
     c->written += n;
     if (c->written == c->length) {
