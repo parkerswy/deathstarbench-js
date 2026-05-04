@@ -293,7 +293,7 @@ services:
         condition: any
 
   mongodb-geo:
-    image: mongo:5.0
+    image: mongo:4.4
     hostname: geo-db
     volumes:
       - geo:/data/db
@@ -304,7 +304,7 @@ services:
         condition: any
 
   mongodb-profile:
-    image: mongo:5.0
+    image: mongo:4.4
     hostname: profile-db
     volumes:
       - profile:/data/db
@@ -315,7 +315,7 @@ services:
         condition: any
 
   mongodb-rate:
-    image: mongo:5.0
+    image: mongo:4.4
     hostname: rate-db
     volumes:
       - rate:/data/db
@@ -326,7 +326,7 @@ services:
         condition: any
 
   mongodb-review:
-    image: mongo:5.0
+    image: mongo:4.4
     hostname: review-db
     volumes:
       - review:/data/db
@@ -337,7 +337,7 @@ services:
         condition: any
 
   mongodb-attractions:
-    image: mongo:5.0
+    image: mongo:4.4
     hostname: attractions-db
     volumes:
       - attractions:/data/db
@@ -348,7 +348,7 @@ services:
         condition: any
 
   mongodb-recommendation:
-    image: mongo:5.0
+    image: mongo:4.4
     hostname: recommendation-db
     volumes:
       - recommendation:/data/db
@@ -359,7 +359,7 @@ services:
         condition: any
 
   mongodb-reservation:
-    image: mongo:5.0
+    image: mongo:4.4
     hostname: reservation-db
     volumes:
       - reservation:/data/db
@@ -370,7 +370,7 @@ services:
         condition: any
 
   mongodb-user:
-    image: mongo:5.0
+    image: mongo:4.4
     hostname: user-db
     volumes:
       - user:/data/db

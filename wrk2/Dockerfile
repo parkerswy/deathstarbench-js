@@ -24,5 +24,6 @@ COPY --from=builder /usr/local/bin/wrk /usr/local/bin/wrk
 COPY --from=builder /usr/local/lib/lua /usr/local/lib/lua
 COPY --from=builder /usr/local/lib/luarocks /usr/local/lib/luarocks
 COPY --from=builder /usr/local/share/lua /usr/local/share/lua
+COPY --from=builder /workspace/src/wrk.lua /usr/local/share/lua/5.1/wrk.lua
 
 CMD ["/bin/bash"]
