@@ -27,7 +27,7 @@ services:
     image: deathstarbench/hotel-reservation:latest
     entrypoint: frontend
     ports:
-      - "5000:5000"
+      - "5002:5000"
     depends_on:
       - consul
     restart: always
