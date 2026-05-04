@@ -1,7 +1,7 @@
 math.randomseed(os.time())
 math.random(); math.random(); math.random()
 
-local base_url = url
+local base_url = ""
 
 local function get_user()
   local id = math.random(0, 500)

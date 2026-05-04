@@ -159,79 +159,75 @@ services:
 
   memcached-rate:
     image: memcached:1.6.41-alpine
-    platform: linux/arm64/v8
     command: ["memcached", "-m", "128", "-t", "2"]
     restart: always
 
   memcached-review:
     image: memcached:1.6.41-alpine
-    platform: linux/arm64/v8
     command: ["memcached", "-m", "128", "-t", "2"]
     restart: always
 
   memcached-profile:
     image: memcached:1.6.41-alpine
-    platform: linux/arm64/v8
     command: ["memcached", "-m", "128", "-t", "2"]
     restart: always
 
   memcached-reserve:
     image: memcached:1.6.41-alpine
-    platform: linux/arm64/v8
     command: ["memcached", "-m", "128", "-t", "2"]
     restart: always
 
   mongodb-geo:
-    image: mongo:5.0
+    image: mongo:4.4
     hostname: geo-db
     volumes:
       - geo:/data/db
     restart: always
 
   mongodb-profile:
-    image: mongo:5.0
+    image: mongo:4.4
     hostname: profile-db
     volumes:
       - profile:/data/db
     restart: always
 
   mongodb-rate:
-    image: mongo:5.0
+    image: mongo:4.4
     hostname: rate-db
     volumes:
       - rate:/data/db
     restart: always
 
   mongodb-review:
-    image: mongo:5.0
+    image: mongo:4.4
     hostname: review-db
     volumes:
       - review:/data/db
     restart: always
 
   mongodb-attractions:
-    image: mongo:5.0
+    image: mongo:4.4
     hostname: attractions-db
     volumes:
       - attractions:/data/db
     restart: always
 
   mongodb-recommendation:
-    image: mongo:5.0
+    image: mongo:4.4
     hostname: recommendation-db
     volumes:
       - recommendation:/data/db
     restart: always
 
   mongodb-reservation:
-    image: mongo:5.0
+    image: mongo:4.4
     hostname: reservation-db
     volumes:
       - reservation:/data/db
     restart: always
 
   mongodb-user:
-    image: mongo:5.0
+    image: mongo:4.4
     hostname: user-db
     volumes:
       - user:/data/db
