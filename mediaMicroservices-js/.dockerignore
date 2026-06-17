@@ -1,0 +1,7 @@
+node_modules
+npm-debug.log
+.venv
+coverage
+__pycache__
+*.pyc
+test

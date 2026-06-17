@@ -1,0 +1,187 @@
+services:
+  unique-id-service:
+    build: .
+    image: deathstarbench/media-microservices-js:latest
+    command: ["node", "src/cmd/unique-id.js"]
+    hostname: unique-id-service
+    depends_on: [compose-review-service]
+    restart: always
+
+  movie-id-service:
+    image: deathstarbench/media-microservices-js:latest
+    command: ["node", "src/cmd/movie-id.js"]
+    hostname: movie-id-service
+    depends_on: [movie-id-mongodb, movie-id-memcached, compose-review-service, rating-service]
+    restart: always
+  movie-id-mongodb:
+    image: mongo:4.4.6
+    hostname: movie-id-mongodb
+    restart: always
+  movie-id-memcached:
+    image: memcached:1.6-alpine
+    hostname: movie-id-memcached
+    restart: always
+
+  text-service:
+    image: deathstarbench/media-microservices-js:latest
+    command: ["node", "src/cmd/text.js"]
+    hostname: text-service
+    depends_on: [compose-review-service]
+    restart: always
+
+  rating-service:
+    image: deathstarbench/media-microservices-js:latest
+    command: ["node", "src/cmd/rating.js"]
+    hostname: rating-service
+    depends_on: [rating-redis, compose-review-service]
+    restart: always
+  rating-redis:
+    image: redis:7-alpine
+    hostname: rating-redis
+    restart: always
+
+  user-service:
+    image: deathstarbench/media-microservices-js:latest
+    command: ["node", "src/cmd/user.js"]
+    hostname: user-service
+    depends_on: [user-mongodb, user-memcached, compose-review-service]
+    restart: always
+  user-mongodb:
+    image: mongo:4.4.6
+    hostname: user-mongodb
+    restart: always
+  user-memcached:
+    image: memcached:1.6-alpine
+    hostname: user-memcached
+    restart: always
+
+  compose-review-service:
+    image: deathstarbench/media-microservices-js:latest
+    command: ["node", "src/cmd/compose-review.js"]
+    hostname: compose-review-service
+    depends_on: [compose-review-memcached, review-storage-service, user-review-service, movie-review-service]
+    restart: always
+  compose-review-memcached:
+    image: memcached:1.6-alpine
+    hostname: compose-review-memcached
+    restart: always
+
+  review-storage-service:
+    image: deathstarbench/media-microservices-js:latest
+    command: ["node", "src/cmd/review-storage.js"]
+    hostname: review-storage-service
+    depends_on: [review-storage-mongodb, review-storage-memcached]
+    restart: always
+  review-storage-mongodb:
+    image: mongo:4.4.6
+    hostname: review-storage-mongodb
+    restart: always
+  review-storage-memcached:
+    image: memcached:1.6-alpine
+    hostname: review-storage-memcached
+    restart: always
+
+  user-review-service:
+    image: deathstarbench/media-microservices-js:latest
+    command: ["node", "src/cmd/user-review.js"]
+    hostname: user-review-service
+    depends_on: [user-review-mongodb, user-review-redis, review-storage-service]
+    restart: always
+  user-review-mongodb:
+    image: mongo:4.4.6
+    hostname: user-review-mongodb
+    restart: always
+  user-review-redis:
+    image: redis:7-alpine
+    hostname: user-review-redis
+    restart: always
+
+  movie-review-service:
+    image: deathstarbench/media-microservices-js:latest
+    command: ["node", "src/cmd/movie-review.js"]
+    hostname: movie-review-service
+    depends_on: [movie-review-mongodb, movie-review-redis, review-storage-service]
+    restart: always
+  movie-review-mongodb:
+    image: mongo:4.4.6
+    hostname: movie-review-mongodb
+    ports: ["27022:27017"]
+    restart: always
+  movie-review-redis:
+    image: redis:7-alpine
+    hostname: movie-review-redis
+    restart: always
+
+  cast-info-service:
+    image: deathstarbench/media-microservices-js:latest
+    command: ["node", "src/cmd/cast-info.js"]
+    hostname: cast-info-service
+    depends_on: [cast-info-mongodb, cast-info-memcached]
+    restart: always
+  cast-info-mongodb:
+    image: mongo:4.4.6
+    hostname: cast-info-mongodb
+    restart: always
+  cast-info-memcached:
+    image: memcached:1.6-alpine
+    hostname: cast-info-memcached
+    restart: always
+
+  plot-service:
+    image: deathstarbench/media-microservices-js:latest
+    command: ["node", "src/cmd/plot.js"]
+    hostname: plot-service
+    depends_on: [plot-mongodb, plot-memcached]
+    restart: always
+  plot-mongodb:
+    image: mongo:4.4.6
+    hostname: plot-mongodb
+    restart: always
+  plot-memcached:
+    image: memcached:1.6-alpine
+    hostname: plot-memcached
+    restart: always
+
+  movie-info-service:
+    image: deathstarbench/media-microservices-js:latest
+    command: ["node", "src/cmd/movie-info.js"]
+    hostname: movie-info-service
+    depends_on: [movie-info-mongodb, movie-info-memcached]
+    restart: always
+  movie-info-mongodb:
+    image: mongo:4.4.6
+    hostname: movie-info-mongodb
+    restart: always
+  movie-info-memcached:
+    image: memcached:1.6-alpine
+    hostname: movie-info-memcached
+    restart: always
+
+  page-service:
+    profiles: ["page"]
+    image: deathstarbench/media-microservices-js:latest
+    command: ["node", "src/cmd/page.js"]
+    hostname: page-service
+    ports: ["10013:9090"]
+    depends_on: [movie-info-service, movie-review-service, cast-info-service, plot-service]
+    restart: always
+
+  nginx-web-server:
+    image: yg397/openresty-thrift:xenial
+    hostname: nginx-thrift
+    ports: ["8080:8080"]
+    depends_on: [jaeger]
+    volumes:
+      - ./nginx-web-server/lua-scripts:/usr/local/openresty/nginx/lua-scripts
+      - ./nginx-web-server/conf/nginx.conf:/usr/local/openresty/nginx/conf/nginx.conf
+      - ./nginx-web-server/jaeger-config.json:/usr/local/openresty/nginx/jaeger-config.json
+      - ./gen-lua:/gen-lua
+    restart: always
+
+  jaeger:
+    image: jaegertracing/all-in-one:latest
+    hostname: jaeger
+    ports: ["${MEDIA_JAEGER_UI_PORT:-16687}:16686"]
+    environment:
+      - COLLECTOR_ZIPKIN_HTTP_PORT=9411
+    restart: always
