@@ -1,0 +1,37 @@
+{
+  "name": "social-network-js",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Plain JavaScript / Node.js port of DeathStarBench socialNetwork.",
+  "type": "commonjs",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "generate": "thrift --gen js:node -out gen-nodejs social_network.thrift && node scripts/fix_generated_node_bindings.js",
+    "test": "NODE_PATH=../mediaMicroservices-js/node_modules node --test test/*.test.js",
+    "test:coverage": "node scripts/run_coverage.js",
+    "test:diff": "node --test test/differential.test.js",
+    "start:compose-post": "node src/cmd/compose-post.js",
+    "start:home-timeline": "node src/cmd/home-timeline.js",
+    "start:media": "node src/cmd/media.js",
+    "start:post-storage": "node src/cmd/post-storage.js",
+    "start:social-graph": "node src/cmd/social-graph.js",
+    "start:text": "node src/cmd/text.js",
+    "start:unique-id": "node src/cmd/unique-id.js",
+    "start:url-shorten": "node src/cmd/url-shorten.js",
+    "start:user-mention": "node src/cmd/user-mention.js",
+    "start:user-timeline": "node src/cmd/user-timeline.js",
+    "start:user": "node src/cmd/user.js"
+  },
+  "dependencies": {
+    "jsonwebtoken": "^9.0.2",
+    "memjs": "^1.3.2",
+    "mongodb": "^6.16.0",
+    "node-int64": "^0.4.0",
+    "pino": "^9.7.0",
+    "redis": "^4.7.0",
+    "thrift": "^0.22.0",
+    "uuid": "^11.1.0"
+  }
+}

@@ -1,0 +1,182 @@
+services:
+  social-graph-service:
+    build: .
+    image: deathstarbench/social-network-js:latest
+    command: ["node", "src/cmd/social-graph.js"]
+    hostname: social-graph-service
+    depends_on: [jaeger-agent, social-graph-mongodb, social-graph-redis]
+    restart: always
+  social-graph-mongodb:
+    image: mongo:4.4.6
+    hostname: social-graph-mongodb
+    restart: always
+  social-graph-redis:
+    image: redis:7-alpine
+    hostname: social-graph-redis
+    restart: always
+
+  compose-post-service:
+    build: .
+    image: deathstarbench/social-network-js:latest
+    command: ["node", "src/cmd/compose-post.js"]
+    hostname: compose-post-service
+    depends_on:
+      - jaeger-agent
+      - post-storage-service
+      - user-timeline-service
+      - user-service
+      - unique-id-service
+      - media-service
+      - text-service
+      - home-timeline-service
+    restart: always
+
+  post-storage-service:
+    build: .
+    image: deathstarbench/social-network-js:latest
+    command: ["node", "src/cmd/post-storage.js"]
+    hostname: post-storage-service
+    ports: ["10002:9090"]
+    depends_on: [jaeger-agent, post-storage-mongodb, post-storage-memcached]
+    restart: always
+  post-storage-mongodb:
+    image: mongo:4.4.6
+    hostname: post-storage-mongodb
+    restart: always
+  post-storage-memcached:
+    image: memcached:1.6-alpine
+    hostname: post-storage-memcached
+    restart: always
+
+  user-timeline-service:
+    build: .
+    image: deathstarbench/social-network-js:latest
+    command: ["node", "src/cmd/user-timeline.js"]
+    hostname: user-timeline-service
+    depends_on: [jaeger-agent, user-timeline-mongodb, user-timeline-redis, post-storage-service]
+    restart: always
+  user-timeline-mongodb:
+    image: mongo:4.4.6
+    hostname: user-timeline-mongodb
+    restart: always
+  user-timeline-redis:
+    image: redis:7-alpine
+    hostname: user-timeline-redis
+    restart: always
+
+  home-timeline-service:
+    build: .
+    image: deathstarbench/social-network-js:latest
+    command: ["node", "src/cmd/home-timeline.js"]
+    hostname: home-timeline-service
+    depends_on: [jaeger-agent, home-timeline-redis, post-storage-service, social-graph-service]
+    restart: always
+  home-timeline-redis:
+    image: redis:7-alpine
+    hostname: home-timeline-redis
+    restart: always
+
+  url-shorten-service:
+    build: .
+    image: deathstarbench/social-network-js:latest
+    command: ["node", "src/cmd/url-shorten.js"]
+    hostname: url-shorten-service
+    depends_on: [jaeger-agent, url-shorten-mongodb]
+    restart: always
+  url-shorten-mongodb:
+    image: mongo:4.4.6
+    hostname: url-shorten-mongodb
+    restart: always
+  url-shorten-memcached:
+    image: memcached:1.6-alpine
+    hostname: url-shorten-memcached
+    restart: always
+
+  user-service:
+    build: .
+    image: deathstarbench/social-network-js:latest
+    command: ["node", "src/cmd/user.js"]
+    hostname: user-service
+    depends_on: [jaeger-agent, user-mongodb, user-memcached]
+    restart: always
+  user-mongodb:
+    image: mongo:4.4.6
+    hostname: user-mongodb
+    restart: always
+  user-memcached:
+    image: memcached:1.6-alpine
+    hostname: user-memcached
+    restart: always
+
+  media-service:
+    build: .
+    image: deathstarbench/social-network-js:latest
+    command: ["node", "src/cmd/media.js"]
+    hostname: media-service
+    depends_on: [jaeger-agent]
+    restart: always
+  media-mongodb:
+    image: mongo:4.4.6
+    hostname: media-mongodb
+    restart: always
+  media-memcached:
+    image: memcached:1.6-alpine
+    hostname: media-memcached
+    restart: always
+
+  text-service:
+    build: .
+    image: deathstarbench/social-network-js:latest
+    command: ["node", "src/cmd/text.js"]
+    hostname: text-service
+    depends_on: [jaeger-agent, url-shorten-service, user-mention-service]
+    restart: always
+
+  unique-id-service:
+    build: .
+    image: deathstarbench/social-network-js:latest
+    command: ["node", "src/cmd/unique-id.js"]
+    hostname: unique-id-service
+    depends_on: [jaeger-agent]
+    restart: always
+
+  user-mention-service:
+    build: .
+    image: deathstarbench/social-network-js:latest
+    command: ["node", "src/cmd/user-mention.js"]
+    hostname: user-mention-service
+    depends_on: [jaeger-agent, user-mongodb, user-memcached]
+    restart: always
+
+  nginx-thrift:
+    image: yg397/openresty-thrift:xenial
+    platform: linux/amd64
+    hostname: nginx-thrift
+    ports: ["8080:8080"]
+    depends_on: [jaeger-agent]
+    volumes:
+      - ./nginx-web-server/lua-scripts:/usr/local/openresty/nginx/lua-scripts
+      - ./nginx-web-server/pages:/usr/local/openresty/nginx/pages
+      - ./nginx-web-server/conf/nginx.conf:/usr/local/openresty/nginx/conf/nginx.conf
+      - ./nginx-web-server/jaeger-config.json:/usr/local/openresty/nginx/jaeger-config.json
+      - ./gen-lua:/gen-lua
+      - ./docker/openresty-thrift/lua-thrift:/usr/local/openresty/lualib/thrift
+    restart: always
+
+  media-frontend:
+    build: .
+    image: deathstarbench/social-network-js:latest
+    command: ["node", "src/cmd/media-frontend.js"]
+    hostname: media-frontend
+    ports: ["8081:8080"]
+    depends_on: [media-mongodb]
+    restart: always
+
+  jaeger-agent:
+    image: jaegertracing/all-in-one:latest
+    hostname: jaeger-agent
+    ports:
+      - "${SOCIAL_JAEGER_UI_PORT:-16686}:16686"
+    environment:
+      - COLLECTOR_ZIPKIN_HTTP_PORT=9411
+    restart: always

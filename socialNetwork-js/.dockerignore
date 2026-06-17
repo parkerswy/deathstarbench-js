@@ -1,0 +1,8 @@
+node_modules
+npm-debug.log
+test
+datasets
+docker
+media-frontend
+nginx-web-server
+wrk2

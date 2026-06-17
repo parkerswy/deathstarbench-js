@@ -1,0 +1,29 @@
+# Minimal datastore stack for the integration test layer (npm run test:integration).
+# A single Mongo/Redis/Memcached instance backs every service; per-service
+# isolation comes from distinct database names, matching config/service-config.test.json.
+# Ports are offset from the defaults so this can run alongside the full stack.
+services:
+  mongo:
+    image: mongo:4.4.6
+    ports:
+      - "27018:27017"
+    healthcheck:
+      test: ["CMD", "mongo", "--quiet", "--eval", "db.runCommand('ping').ok"]
+      interval: 3s
+      timeout: 5s
+      retries: 20
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6380:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 3s
+      timeout: 5s
+      retries: 20
+
+  memcached:
+    image: memcached:1.6-alpine
+    ports:
+      - "11212:11211"

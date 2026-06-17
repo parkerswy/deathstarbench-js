@@ -1,0 +1,63 @@
+{
+  "name": "media-microservices-js",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Plain JavaScript / Node.js port of DeathStarBench mediaMicroservices.",
+  "type": "commonjs",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "generate": "thrift --gen js:node -out gen-nodejs media_service.thrift && node scripts/fix_generated_node_bindings.js",
+    "test": "node --test test/*.test.js",
+    "test:diff": "node --test test/differential.test.js",
+    "test:parity": "node --test test/parity/*.test.js",
+    "test:wire": "node --test test/wire/*.test.js",
+    "test:integration": "MEDIA_IT=1 MEDIA_CONFIG_PATH=config/service-config.test.json node --test test/integration/*.test.js",
+    "test:coverage": "node scripts/run_coverage.js",
+    "itest:up": "docker compose -f docker-compose.test.yml up -d --wait",
+    "itest:down": "docker compose -f docker-compose.test.yml down -v",
+    "start:unique-id": "node src/cmd/unique-id.js",
+    "start:movie-id": "node src/cmd/movie-id.js",
+    "start:text": "node src/cmd/text.js",
+    "start:rating": "node src/cmd/rating.js",
+    "start:user": "node src/cmd/user.js",
+    "start:compose-review": "node src/cmd/compose-review.js",
+    "start:review-storage": "node src/cmd/review-storage.js",
+    "start:user-review": "node src/cmd/user-review.js",
+    "start:movie-review": "node src/cmd/movie-review.js",
+    "start:cast-info": "node src/cmd/cast-info.js",
+    "start:plot": "node src/cmd/plot.js",
+    "start:movie-info": "node src/cmd/movie-info.js",
+    "start:page": "node src/cmd/page.js"
+  },
+  "dependencies": {
+    "jsonwebtoken": "^9.0.2",
+    "memjs": "^1.3.2",
+    "mongodb": "^6.16.0",
+    "node-int64": "^0.4.0",
+    "pino": "^9.7.0",
+    "redis": "^4.7.0",
+    "thrift": "^0.22.0",
+    "uuid": "^11.1.0"
+  },
+  "devDependencies": {
+    "c8": "^10.1.3"
+  },
+  "c8": {
+    "include": [
+      "src/services/**",
+      "src/lib/i64.js",
+      "src/lib/idGenerator.js",
+      "src/lib/errors.js"
+    ],
+    "reporter": [
+      "text",
+      "text-summary"
+    ],
+    "check-coverage": true,
+    "lines": 90,
+    "functions": 90,
+    "branches": 80
+  }
+}
