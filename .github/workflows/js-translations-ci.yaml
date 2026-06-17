@@ -1,0 +1,62 @@
+name: JS translations CI
+
+on:
+  push:
+    paths:
+      - 'socialNetwork-js/**'
+      - 'mediaMicroservices-js/**'
+      - 'hotelReservation-js/**'
+      - '.github/workflows/js-translations-ci.yaml'
+  pull_request:
+    paths:
+      - 'socialNetwork-js/**'
+      - 'mediaMicroservices-js/**'
+      - 'hotelReservation-js/**'
+      - '.github/workflows/js-translations-ci.yaml'
+  workflow_dispatch:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: |
+            socialNetwork-js/package-lock.json
+            mediaMicroservices-js/package-lock.json
+            hotelReservation-js/package-lock.json
+
+      - name: Install socialNetwork-js dependencies
+        run: npm ci
+        working-directory: socialNetwork-js
+
+      - name: Install mediaMicroservices-js dependencies
+        run: npm ci
+        working-directory: mediaMicroservices-js
+
+      - name: Install hotelReservation-js dependencies
+        run: npm ci
+        working-directory: hotelReservation-js
+
+      - name: Test socialNetwork-js
+        run: |
+          npm test
+          npm run test:coverage
+        working-directory: socialNetwork-js
+
+      - name: Test mediaMicroservices-js
+        run: |
+          npm test
+          npm run test:parity
+          npm run test:wire
+          npm run test:coverage
+        working-directory: mediaMicroservices-js
+
+      - name: Test hotelReservation-js
+        run: npm test
+        working-directory: hotelReservation-js
