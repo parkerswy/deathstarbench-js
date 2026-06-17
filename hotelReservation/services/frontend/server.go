@@ -130,11 +130,7 @@ func (s *Server) initSearchClient(name string) error {
 }
 
 func (s *Server) initReviewClient(name string) error {
-	conn, err := dialer.Dial(
-		name,
-		dialer.WithTracer(s.Tracer),
-		dialer.WithBalancer(s.Registry.Client),
-	)
+	conn, err := s.getGprcConn(name)
 	if err != nil {
 		return fmt.Errorf("dialer error: %v", err)
 	}
@@ -143,11 +139,7 @@ func (s *Server) initReviewClient(name string) error {
 }
 
 func (s *Server) initAttractionsClient(name string) error {
-	conn, err := dialer.Dial(
-		name,
-		dialer.WithTracer(s.Tracer),
-		dialer.WithBalancer(s.Registry.Client),
-	)
+	conn, err := s.getGprcConn(name)
 	if err != nil {
 		return fmt.Errorf("dialer error: %v", err)
 	}
@@ -376,15 +368,14 @@ func (s *Server) reviewHandler(w http.ResponseWriter, r *http.Request) {
 	revInput := review.Request{HotelId: hotelId}
 
 	revResp, err := s.reviewClient.GetReviews(ctx, &revInput)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
 
 	str = "Have reviews = " + strconv.Itoa(len(revResp.Reviews))
 	if len(revResp.Reviews) == 0 {
 		str = "Failed. No Reviews. "
-	}
-
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
 	}
 
 	res := map[string]interface{}{
@@ -428,15 +419,14 @@ func (s *Server) restaurantHandler(w http.ResponseWriter, r *http.Request) {
 	revInput := attractions.Request{HotelId: hotelId}
 
 	revResp, err := s.attractionsClient.NearbyRest(ctx, &revInput)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
 
 	str = "Have restaurants = " + strconv.Itoa(len(revResp.AttractionIds))
 	if len(revResp.AttractionIds) == 0 {
 		str = "Failed. No Restaurants. "
-	}
-
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
 	}
 
 	res := map[string]interface{}{
@@ -480,15 +470,14 @@ func (s *Server) museumHandler(w http.ResponseWriter, r *http.Request) {
 	revInput := attractions.Request{HotelId: hotelId}
 
 	revResp, err := s.attractionsClient.NearbyMus(ctx, &revInput)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
 
 	str = "Have museums = " + strconv.Itoa(len(revResp.AttractionIds))
 	if len(revResp.AttractionIds) == 0 {
 		str = "Failed. No Museums. "
-	}
-
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
 	}
 
 	res := map[string]interface{}{
@@ -532,15 +521,14 @@ func (s *Server) cinemaHandler(w http.ResponseWriter, r *http.Request) {
 	revInput := attractions.Request{HotelId: hotelId}
 
 	revResp, err := s.attractionsClient.NearbyCinema(ctx, &revInput)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
 
 	str = "Have cinemas = " + strconv.Itoa(len(revResp.AttractionIds))
 	if len(revResp.AttractionIds) == 0 {
 		str = "Failed. No Cinemas. "
-	}
-
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
 	}
 
 	res := map[string]interface{}{

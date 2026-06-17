@@ -7,6 +7,8 @@
     "node": ">=20"
   },
   "scripts": {
+    "test": "node --test test/*.test.js",
+    "test:diff": "node --test test/differential.test.js",
     "start:frontend": "node src/cmd/frontend.js",
     "start:profile": "node src/cmd/profile.js",
     "start:search": "node src/cmd/search.js",
